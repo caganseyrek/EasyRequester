@@ -1,0 +1,51 @@
+{
+	"name": "easy-requester",
+	"version": "1.0.0",
+	"description": "A custom and flexible HTTP requester",
+	"main": "dist/index.js",
+	"keywords": [
+		"typescript",
+		"axios",
+		"http-requester"
+	],
+	"author": "Çağan Seyrek",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/caganseyrek/EasyRequester/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/caganseyrek/EasyRequester.git"
+	},
+	"homepage": "https://github.com/caganseyrek/EasyRequester#README",
+	"lint-staged": {
+		"src/**/*.ts": [
+			"prettier --write",
+			"eslint . --ext ts --report-unused-disable-directives --max-warnings 0"
+		],
+		"tests/**/*.ts": [
+			"prettier --write",
+			"eslint . --ext ts --report-unused-disable-directives --max-warnings 0"
+		]
+	},
+	"scripts": {
+		"build": "tsc -b",
+		"lint": "eslint . --ext ts --report-unused-disable-directives --max-warnings 0",
+		"test": "jest"
+	},
+	"dependencies": {
+		"axios": "^1.7.4"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.14.0",
+		"@jest/globals": "^29.7.0",
+		"@types/node": "^22.9.0",
+		"eslint": "^9.14.0",
+		"globals": "^15.12.0",
+		"jest": "^29.7.0",
+		"ts-jest": "^29.2.5",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.5.4",
+		"typescript-eslint": "^8.13.0"
+	}
+}

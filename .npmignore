@@ -1,0 +1,8 @@
+src/
+tests/
+node_modules/
+tsconfig.json
+eslint.configjs
+jest.config.ts
+.prettierrc
+.editorconfig
