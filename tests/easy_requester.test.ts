@@ -7,7 +7,7 @@ jest.mock("axios");
 const axiosMock = axios as jest.Mocked<typeof axios>;
 
 describe("A custom and flexible HTTP requester", () => {
-  const baseURL = "https://example.com/api/";
+  const baseURL = "example.com/api";
   const endpoint = {
     route: "route",
     controller: "controller",
@@ -45,9 +45,9 @@ describe("A custom and flexible HTTP requester", () => {
 
     await requester.sendRequest();
 
-    const expectedUrl = `${baseURL}${endpoint.route}/${endpoint.controller}?${new URLSearchParams(
-      query,
-    ).toString()}`;
+    const expectedUrl = `https://${baseURL}/${endpoint.route}/${
+      endpoint.controller
+    }?${new URLSearchParams(query).toString()}`;
 
     expect(axiosMock.request).toHaveBeenCalledWith(
       expect.objectContaining({

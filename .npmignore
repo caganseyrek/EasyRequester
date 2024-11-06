@@ -1,5 +1,6 @@
 src/
 tests/
+.husky/
 node_modules/
 tsconfig.json
 eslint.config.js

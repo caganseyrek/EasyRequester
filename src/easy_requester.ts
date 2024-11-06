@@ -98,11 +98,11 @@ export default class EasyRequester {
   async sendRequest<TResponse = AxiosResponse>(): Promise<TResponse> {
     let requestUrl: string;
     if (typeof this.endpoint === "string") {
-      requestUrl = `${this.protocol}://${this.baseURL}:${this.port ? this.port : ""}/${
+      requestUrl = `${this.protocol}://${this.baseURL}${this.port ? `:${this.port}` : ""}/${
         this.endpoint
       }`;
     } else {
-      requestUrl = `${this.protocol}://${this.baseURL}:${this.port ? this.port : ""}/${
+      requestUrl = `${this.protocol}://${this.baseURL}${this.port ? `:${this.port}` : ""}/${
         this.endpoint.route
       }/${this.endpoint.controller}`;
     }
