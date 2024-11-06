@@ -2,7 +2,7 @@ src/
 tests/
 node_modules/
 tsconfig.json
-eslint.configjs
+eslint.config.js
 jest.config.ts
 .prettierrc
 .editorconfig
