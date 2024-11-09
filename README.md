@@ -40,7 +40,6 @@ pnpm add easy-requester
     port?: number;
     endpoint: EndpointProps | string;
     method: Methods;
-    retries?: number;
     headers?: RawAxiosRequestHeaders | AxiosHeaders;
     contentType?: string;
     accessToken?: string;
@@ -104,8 +103,6 @@ async function fetchSomeData(requestData: object | string, queryData: string) {
 
 async function fetchSomeData(requestData: object | string, queryData: string) {
   try {
-    const requester = new EasyRequester();
-
     const requestConfig: EasyRequesterConfig = {
       protocol: "https",
       baseURL: "example.com/api",
@@ -114,6 +111,8 @@ async function fetchSomeData(requestData: object | string, queryData: string) {
       payload: requestData,
       query: queryData,
     }
+
+    const requester = new EasyRequester(requesterConfig);
 
     const response = await requester.sendRequest<CustomResponseType>();
 
