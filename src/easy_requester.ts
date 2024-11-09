@@ -30,7 +30,6 @@ export interface EasyRequesterConfig extends AxiosRequestConfig {
   port?: number;
   endpoint: EndpointProps | string;
   method: Methods;
-  retries?: number;
   headers?: RawAxiosRequestHeaders | AxiosHeaders;
   contentType?: string;
   accessToken?: string;
