@@ -26,13 +26,12 @@ pnpm add easy-requester
     | "POST"
     | "PATCH"
     | "CONNECT";
+  type HttpProtocols = "http" | "https";
 
   type EndpointProps = {
     route: string;
     controller: string;
   };
-
-  type HttpProtocols = "http" | "https";
 
   export interface EasyRequesterConfig extends AxiosRequestConfig {
     protocol?: HttpProtocols;
@@ -40,9 +39,9 @@ pnpm add easy-requester
     port?: number;
     endpoint: EndpointProps | string;
     method: Methods;
-    headers?: RawAxiosRequestHeaders | AxiosHeaders;
+    headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
     contentType?: string;
-    accessToken?: string;
+    accessToken?: string | number;
     includeCookies?: boolean;
     responseLang?: string;
     statusCodes?: number[];
@@ -81,25 +80,7 @@ First, initialize the requester class, then provide the required and optional pa
 The `sendRequest` function requires a return type for the response.
 
 ```typescript
-async function fetchSomeData(requestData: object | string, queryData: string) {
-  try {
-    const response = await new EasyRequester({
-      protocol: "https",
-      baseURL: "example.com/api",
-      endpoint: "user/login",
-      method: "POST",
-      payload: requestData,
-      query: queryData,
-    }).sendRequest<CustomResponseType>();
-
-    return response;
-  } catch (error) {
-    console.error(error);
-    throw new Error(error as string);
-  }
-}
-
-// or
+import { EasyRequester } from "easy-requester";
 
 async function fetchSomeData(requestData: object | string, queryData: string) {
   try {
@@ -112,9 +93,8 @@ async function fetchSomeData(requestData: object | string, queryData: string) {
       query: queryData,
     }
 
-    const requester = new EasyRequester(requesterConfig);
-
-    const response = await requester.sendRequest<CustomResponseType>();
+    const requester = EasyRequester.setConfig(requestConfig);
+    const response = requester.sendRequest<ResponseType, RequestPayloadType>();
 
     return response;
   } catch (error) {
@@ -122,4 +102,16 @@ async function fetchSomeData(requestData: object | string, queryData: string) {
     throw new Error(error as string);
   }
 }
+```
+
+You can update the request config simply by calling `setConfig()` function and passing the required and optional parameters.
+
+## Debug Mode
+
+Debug mode logs almost every action to the console. You can enable the debug mode by calling `debugMode()` and passing a `boolean` value for toggling. You if you call the function and pass a `true`, you can pass false value later in code to disable the debug mode.
+
+```typescript
+const requester = EasyRequester.setConfig({ ...someConfig }).debugMode(true);
+// or
+const requester = EasyRequester.debugMode(true);
 ```

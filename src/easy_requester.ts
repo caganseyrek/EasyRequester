@@ -16,13 +16,8 @@ type Methods =
   | "POST"
   | "PATCH"
   | "CONNECT";
-
-type EndpointProps = {
-  route: string;
-  controller: string;
-};
-
 type HttpProtocols = "http" | "https";
+type EndpointProps = { route: string; controller: string };
 
 export interface EasyRequesterConfig extends AxiosRequestConfig {
   protocol?: HttpProtocols;
@@ -30,9 +25,9 @@ export interface EasyRequesterConfig extends AxiosRequestConfig {
   port?: number;
   endpoint: EndpointProps | string;
   method: Methods;
-  headers?: RawAxiosRequestHeaders | AxiosHeaders;
+  headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
   contentType?: string;
-  accessToken?: string;
+  accessToken?: string | number;
   includeCookies?: boolean;
   responseLang?: string;
   statusCodes?: number[];
@@ -41,106 +36,183 @@ export interface EasyRequesterConfig extends AxiosRequestConfig {
   additionalOptions?: object;
 }
 
-export default class EasyRequester {
-  private protocol?: "http" | "https";
-  private baseURL: string;
+class EasyRequester {
+  private isDebugMode?: boolean = true;
+  private protocol?: "http" | "https" = "https";
+  private baseURL: string = "";
   private port?: number;
-  private endpoint: EndpointProps | string;
-  private method: Methods;
-  private headers?: RawAxiosRequestHeaders | AxiosHeaders;
+  private endpoint: EndpointProps | string = { controller: "", route: "" };
+  private method: Methods = "POST";
+  private headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
+  private generatedHeaders?: object;
   private contentType?: string;
-  private accessToken?: string;
+  private accessToken?: string | number;
   private includeCookies?: boolean = false;
   private responseLang?: string;
-  private statusCodes?: number[];
+  private statusCodes: number[] = [];
   private query?: Record<string, string>;
-  private payload: object | Record<string, string> | string;
+  private payload: object | Record<string, string> | string = {};
   private additionalOptions?: object;
 
-  constructor({
-    protocol,
-    baseURL,
-    port,
-    endpoint,
-    method,
-    headers,
-    contentType,
-    accessToken,
-    includeCookies,
-    responseLang,
-    statusCodes,
-    query,
-    payload,
-    ...additionalOptions
-  }: EasyRequesterConfig) {
-    this.protocol = protocol ?? "https";
-    this.baseURL = baseURL;
-    this.port = port;
-    this.endpoint = endpoint;
-    this.method = method;
-    this.contentType = contentType;
-    this.accessToken = accessToken;
-    this.includeCookies = includeCookies ?? false;
-    this.responseLang = responseLang;
-    this.statusCodes = statusCodes;
-    this.headers = {
-      ...headers,
-      "Content-Type": contentType ? this.contentType : "application/json",
-      ...(accessToken && { Authorization: `Bearer ${this.accessToken}` }),
-      ...(responseLang && { "Accept-Language": this.responseLang }),
-    };
-    this.query = query;
-    this.payload = payload;
-    this.additionalOptions = additionalOptions;
+  constructor() {
+    this.protocol = "https";
+    this.baseURL = "";
+    this.endpoint = { route: "", controller: "" };
+    this.method = "POST";
+    this.contentType = "application/json";
+    this.accessToken = "";
+    this.includeCookies = false;
+    this.responseLang = "";
+    this.statusCodes = [];
+    this.payload = {};
+    this.additionalOptions = {};
+    this.headers = {};
+    this.generatedHeaders = this.generateHeaders();
   }
 
-  async sendRequest<TResponse = AxiosResponse>(): Promise<TResponse> {
-    let requestUrl: string;
-    if (typeof this.endpoint === "string") {
-      requestUrl = `${this.protocol}://${this.baseURL}${this.port ? `:${this.port}` : ""}/${
-        this.endpoint
-      }`;
-    } else {
-      requestUrl = `${this.protocol}://${this.baseURL}${this.port ? `:${this.port}` : ""}/${
-        this.endpoint.route
-      }/${this.endpoint.controller}`;
+  private debugModeLog(message: string, data?: object | string): void {
+    if (this.isDebugMode) {
+      const formattedData = data ? `: ${JSON.stringify(data)}` : "";
+      // eslint-disable-next-line no-console
+      console.debug(`[EasyRequester_DEBUG]: ${message}${formattedData}`);
     }
+  }
 
-    if (this.query) {
-      const queryString = new URLSearchParams(this.query).toString();
-      requestUrl += `?${queryString}`;
+  private generateHeaders(): object {
+    this.debugModeLog("Generating headers");
+    const headers = {
+      ...this.headers,
+      "Content-Type": this.contentType ? this.contentType : "application/json",
+      ...(this.accessToken && { Authorization: `Bearer ${this.accessToken}` }),
+      ...(this.responseLang && { "Accept-Language": this.responseLang }),
+    };
+    this.debugModeLog("Generated headers", headers);
+    return headers;
+  }
+
+  private generateURL(): string {
+    this.debugModeLog("Generating request URL");
+    const urlString: string = `${this.protocol}://${this.baseURL}${
+      this.port ? `:${this.port}` : ""
+    }/`;
+    const endpointString: string =
+      typeof this.endpoint === "string"
+        ? this.endpoint
+        : `${this.endpoint.route}/${this.endpoint.controller}`;
+    const queryString: string = this.query ? new URLSearchParams(this.query).toString() : "";
+    const generatedURL: string = `${urlString}${endpointString}?${queryString}`;
+    this.debugModeLog("Generated request URL", generatedURL);
+    return generatedURL;
+  }
+
+  private get requestURL(): string {
+    return this.generateURL();
+  }
+
+  private validateConfig() {
+    if (this.protocol && this.protocol !== "https" && this.protocol !== "http") {
+      this.debugModeLog(`Protocol should be 'http' or 'https' but instead is ${this.protocol}`);
+      throw new Error("[EasyRequester_ERROR] Protocol should be 'http' or 'https'.");
     }
+    if (!this.baseURL) {
+      throw new Error("[EasyRequester_ERROR] BaseURL is required for requester.");
+    }
+    if (this.port && typeof this.port !== "number") {
+      throw new Error("[EasyRequester_ERROR] Port should be typeof number.");
+    }
+    if (typeof this.endpoint !== "string" && typeof this.endpoint !== "object") {
+      throw new Error(
+        "[EasyRequester_ERROR] Endpoint should be typeof string or typeof EndpointProps.",
+      );
+    }
+    if (this.contentType && typeof this.contentType !== "string") {
+      throw new Error("[EasyRequester_ERROR] contentType should be typeof string.");
+    }
+    if (this.responseLang && typeof this.responseLang !== "string") {
+      throw new Error("[EasyRequester_ERROR] responseLang should be typeof string.");
+    }
+    if (
+      this.accessToken &&
+      typeof this.accessToken !== "string" &&
+      typeof this.accessToken !== "number"
+    ) {
+      throw new Error("[EasyRequester_ERROR] Endpoint should be typeof string or typeof number.");
+    }
+  }
 
-    const possibleStatusCodes = this.statusCodes ?? [
-      200, 201, 202, 203, 204, 205, 206, 207, 208, 226,
-    ];
+  public setConfig(config: EasyRequesterConfig): EasyRequester {
+    this.protocol = config.protocol ?? this.protocol;
+    this.baseURL = config.baseURL;
+    this.port = config.port ?? this.port;
+    this.endpoint = config.endpoint;
+    this.method = config.method;
+    this.contentType = config.contentType ?? this.contentType;
+    this.accessToken = config.accessToken ?? this.accessToken;
+    this.includeCookies = config.includeCookies ?? this.includeCookies;
+    this.responseLang = config.responseLang ?? this.responseLang;
+    this.statusCodes = config.statusCodes ?? [];
+    this.query = config.query ?? this.query;
+    this.payload = config.payload ?? {};
+    this.additionalOptions = config.additionalOptions ?? {};
+    this.headers = config.headers ?? {};
+    this.generatedHeaders = this.generateHeaders();
 
-    const axiosInstance = axios.create({ baseURL: requestUrl });
+    this.validateConfig();
+    return this;
+  }
+
+  public debugMode(isToggled: boolean = false): EasyRequester {
+    this.isDebugMode = isToggled;
+    return this;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async sendRequest<TResponse = any, TPayload = any>(): Promise<
+    AxiosResponse<TResponse, TPayload>
+  > {
+    const axiosInstance = axios.create({ baseURL: this.requestURL });
     axiosInstance.interceptors.response.use(
-      (response: AxiosResponse) => {
+      (response: AxiosResponse<TResponse, TPayload>) => {
+        this.debugModeLog("Received a response", response);
+        if (this.statusCodes && this.statusCodes.includes(response.status)) {
+          return Promise.resolve(response);
+        }
         return response;
       },
       (error: AxiosError) => {
-        if (error.response && possibleStatusCodes.includes(error.response!.status)) {
-          return Promise.resolve(error.response!.data);
+        if (
+          error.response &&
+          this.statusCodes &&
+          this.statusCodes.includes(error.response!.status)
+        ) {
+          this.debugModeLog("Intercepted an error with a possible code", error.response);
+          return Promise.resolve(error.response as AxiosResponse<TResponse, TPayload>);
         }
+        this.debugModeLog("Received an error", error.response);
         return Promise.reject(error);
       },
     );
 
-    const axiosConfig: AxiosRequestConfig = {
+    const possibleStatusCodes = this.statusCodes;
+    const axiosConfig: AxiosRequestConfig<TPayload> = {
       ...this.additionalOptions,
-      url: requestUrl,
+      baseURL: this.requestURL,
       method: this.method,
-      headers: this.headers,
-      data: this.payload,
+      headers: this.generatedHeaders,
+      data: this.payload as TPayload,
       withCredentials: this.includeCookies,
-      validateStatus: function (status) {
-        return possibleStatusCodes.includes(status);
+      validateStatus: (status) => {
+        return this.statusCodes
+          ? possibleStatusCodes.includes(status)
+          : status >= 200 && status < 300;
       },
     };
 
-    const response = await axiosInstance.request<TResponse>(axiosConfig);
-    return response.data as TResponse;
+    const response = await axiosInstance.request<TResponse, AxiosResponse<TResponse, TPayload>>(
+      axiosConfig,
+    );
+    return response;
   }
 }
+
+export default new EasyRequester();
