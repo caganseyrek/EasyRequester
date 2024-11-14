@@ -9,20 +9,98 @@ import axios, {
 type Methods = "GET" | "HEAD" | "OPTIONS" | "TRACE" | "PUT" | "DELETE" | "POST" | "PATCH" | "CONNECT";
 type HttpProtocols = "http" | "https";
 
+/**
+ * Configuration options for the EasyRequester class.
+ * @interface EasyRequesterConfig
+ * @param {EasyRequesterConfig} config - The configuration object for the request.
+ * @description See the usage at https://github.com/caganseyrek/EasyRequester#README
+ */
 export interface EasyRequesterConfig extends AxiosRequestConfig {
+  /**
+   * Protocol of the request. Defaults to `https`.
+   * @param {HttpProtocols} [protocol="https"] **Optional**
+   */
   protocol?: HttpProtocols;
+
+  /**
+   * BaseURL of the http request. Should **not** include the endpoint. (e.g. `api.example.com`)
+   * @param {string} baseURL **Required**
+   */
   baseURL: string;
+
+  /**
+   * Port number to use in the base URL. (e.g. `api.example.com:8080`)
+   * @param {number} port **Optional**
+   */
   port?: number;
+
+  /**
+   * The endpoint that comes after the base URL. If you pass an object to endpoint prop, only the values used for generating the endpoint and not the keys.
+   * @param {object | string} endpoint **Required**
+   * @example
+   * config.endpoint = { route: "user", controller: "login" };
+   * config.endpoint = "user/login";
+   */
   endpoint: object | string;
+
+  /**
+   * Method of the http request (e.g., `GET`, `POST`).
+   * @param {Methods} method **Required**
+   */
   method: Methods;
+
+  /**
+   * FHeaders for the request.
+   * @param {RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>} headers **Optional**
+   */
   headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
+
+  /**
+   * Content-Type for the request. Defaults to `application/json`.
+   * @param {string} [contentType="application/json"] **Optional**
+   */
   contentType?: string;
+
+  /**
+   * Access token for authorization, if required by the backend.
+   * @param {string | number} accessToken **Optional**
+   */
   accessToken?: string | number;
+
+  /**
+   * Whether to include cookies in the request. Defaults to `false`.
+   * @param {boolean} [includeCookies=false] **Optional**
+   */
   includeCookies?: boolean;
+
+  /**
+   * Language for the response data (Accept-Language header). Does not have a default value.
+   * @param {string?} responseLang **Optional**
+   */
   responseLang?: string;
+
+  /**
+   * List of acceptable status codes that requester does not throw an error when received. Defaults to status codes like `2xx`.
+   * @param {number[]} statusCodes **Optional**
+   */
   statusCodes?: number[];
+
+  /**
+   * Query parameters to include in the request.
+   * @param {Record<string, string>} query **Optional**
+   */
   query?: Record<string, string>;
+
+  /**
+   * The payload data for the request.
+   * @param {object | Record<string, string> | string} payload **Required**
+   */
   payload: object | Record<string, string> | string;
+
+  /**
+   * Additional Axios options for the request.
+   * @param {object?} additionalOptions **Optional**
+   */
   additionalOptions?: object;
 }
 
@@ -32,7 +110,7 @@ class EasyRequester {
   private baseURL: string = "";
   private port?: number;
   private endpoint: object | string = "";
-  private method: Methods = "POST";
+  private method: Methods;
   private headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
   private generatedHeaders?: object;
   private contentType?: string;
@@ -135,6 +213,14 @@ class EasyRequester {
     }
   }
 
+  /**
+   * Sets up the configuration for the EasyRequester instance.
+   * @param {EasyRequesterConfig} config
+   * @returns The EasyRequester instance for chaining.
+   * @throws {Error} If required configuration fields are missing or invalid.
+   * @example
+   * EasyRequester.setConfig({ ...config });
+   */
   public setConfig(config: EasyRequesterConfig): EasyRequester {
     this.protocol = config.protocol ?? this.protocol;
     this.baseURL = config.baseURL.replace(/\/$/, "");
@@ -156,11 +242,27 @@ class EasyRequester {
     return this;
   }
 
+  /**
+   * Toggles debug mode for logging request and requester instance details.
+   * @param {boolean} [isToggled=false] **Optional**
+   * @description If true, enables debug logging. Defaults to `false`.
+   * @returns {EasyRequester} The EasyRequester instance for chaining.
+   * @example
+   * EasyRequester.debugMode(true);
+   */
   public debugMode(isToggled: boolean = false): EasyRequester {
     this.isDebugMode = isToggled;
     return this;
   }
 
+  /**
+   * Sends an HTTP request using the configured settings.
+   * @template TResponse - Type of the expected response data.
+   * @template TPayload - Type of the payload data.
+   * @requires `setConfig()` to set the request configuration.
+   * @returns {Promise<AxiosResponse<TResponse, TPayload>>} A promise resolving with the Axios response.
+   * @throws {AxiosError} For HTTP requests that does not match the possible status codes.
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async sendRequest<TResponse = any, TPayload = any>(): Promise<AxiosResponse<TResponse, TPayload>> {
     const axiosInstance = axios.create({ baseURL: this.generateURL() });
@@ -200,4 +302,7 @@ class EasyRequester {
   }
 }
 
+/**
+ * @description EasyRequester is a customizable HTTP requester and request handler with detailed configuration. See https://github.com/caganseyrek/EasyRequester for more info and details about how to use.
+ */
 export default new EasyRequester();
