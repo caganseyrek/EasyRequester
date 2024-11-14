@@ -6,24 +6,14 @@ import axios, {
   RawAxiosRequestHeaders,
 } from "axios";
 
-type Methods =
-  | "GET"
-  | "HEAD"
-  | "OPTIONS"
-  | "TRACE"
-  | "PUT"
-  | "DELETE"
-  | "POST"
-  | "PATCH"
-  | "CONNECT";
+type Methods = "GET" | "HEAD" | "OPTIONS" | "TRACE" | "PUT" | "DELETE" | "POST" | "PATCH" | "CONNECT";
 type HttpProtocols = "http" | "https";
-type EndpointProps = { route: string; controller: string };
 
 export interface EasyRequesterConfig extends AxiosRequestConfig {
   protocol?: HttpProtocols;
   baseURL: string;
   port?: number;
-  endpoint: EndpointProps | string;
+  endpoint: object | string;
   method: Methods;
   headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
   contentType?: string;
@@ -41,7 +31,7 @@ class EasyRequester {
   private protocol?: "http" | "https" = "https";
   private baseURL: string = "";
   private port?: number;
-  private endpoint: EndpointProps | string = { controller: "", route: "" };
+  private endpoint: object | string = "";
   private method: Methods = "POST";
   private headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
   private generatedHeaders?: object;
@@ -90,59 +80,64 @@ class EasyRequester {
     return headers;
   }
 
+  private generateEndpointFromObject(): string {
+    let generatedEndpoint: string = "";
+
+    if (typeof this.endpoint === "object") {
+      Object.entries(this.endpoint).forEach(([key, value]) => {
+        if (typeof value !== "string") {
+          throw new Error(`[EasyRequester_ERROR] Value for key "${key}" must be a string`);
+        }
+        const sanitizedValue = value.replace(/^\/|\/$/g, "");
+        if (sanitizedValue.includes("/")) {
+          throw new Error(`[EasyRequester_ERROR] Value for key "${key}" contains an invalid slash`);
+        }
+        generatedEndpoint += `/${sanitizedValue}`;
+      });
+      return generatedEndpoint;
+    }
+    return this.endpoint.replace(/^\/|\/$/g, "");
+  }
+
   private generateURL(): string {
     this.debugModeLog("Generating request URL");
-    const urlString: string = `${this.protocol}://${this.baseURL}${
-      this.port ? `:${this.port}` : ""
-    }/`;
-    const endpointString: string =
-      typeof this.endpoint === "string"
-        ? this.endpoint
-        : `${this.endpoint.route}/${this.endpoint.controller}`;
+
+    const urlString: string = `${this.protocol}://${this.baseURL}${this.port ? `:${this.port}` : ""}`;
+    const endpointString: string = this.generateEndpointFromObject();
     const queryString: string = this.query ? new URLSearchParams(this.query).toString() : "";
+
     const generatedURL: string = `${urlString}${endpointString}?${queryString}`;
     this.debugModeLog("Generated request URL", generatedURL);
     return generatedURL;
   }
 
-  private get requestURL(): string {
-    return this.generateURL();
-  }
-
   private validateConfig() {
     if (this.protocol && this.protocol !== "https" && this.protocol !== "http") {
-      this.debugModeLog(`Protocol should be 'http' or 'https' but instead is ${this.protocol}`);
       throw new Error("[EasyRequester_ERROR] Protocol should be 'http' or 'https'.");
     }
     if (!this.baseURL) {
       throw new Error("[EasyRequester_ERROR] BaseURL is required for requester.");
     }
     if (this.port && typeof this.port !== "number") {
-      throw new Error("[EasyRequester_ERROR] Port should be typeof number.");
+      throw new Error("[EasyRequester_ERROR] Port should be typeof 'number'.");
     }
     if (typeof this.endpoint !== "string" && typeof this.endpoint !== "object") {
-      throw new Error(
-        "[EasyRequester_ERROR] Endpoint should be typeof string or typeof EndpointProps.",
-      );
+      throw new Error("[EasyRequester_ERROR] Endpoint should be typeof 'string' or typeof 'EndpointProps'.");
     }
     if (this.contentType && typeof this.contentType !== "string") {
-      throw new Error("[EasyRequester_ERROR] contentType should be typeof string.");
+      throw new Error("[EasyRequester_ERROR] contentType should be typeof 'string'.");
     }
     if (this.responseLang && typeof this.responseLang !== "string") {
-      throw new Error("[EasyRequester_ERROR] responseLang should be typeof string.");
+      throw new Error("[EasyRequester_ERROR] responseLang should be typeof 'string'.");
     }
-    if (
-      this.accessToken &&
-      typeof this.accessToken !== "string" &&
-      typeof this.accessToken !== "number"
-    ) {
-      throw new Error("[EasyRequester_ERROR] Endpoint should be typeof string or typeof number.");
+    if (this.accessToken && typeof this.accessToken !== "string" && typeof this.accessToken !== "number") {
+      throw new Error("[EasyRequester_ERROR] Endpoint should be typeof 'string' or typeof 'number'.");
     }
   }
 
   public setConfig(config: EasyRequesterConfig): EasyRequester {
     this.protocol = config.protocol ?? this.protocol;
-    this.baseURL = config.baseURL;
+    this.baseURL = config.baseURL.replace(/\/$/, "");
     this.port = config.port ?? this.port;
     this.endpoint = config.endpoint;
     this.method = config.method;
@@ -167,10 +162,8 @@ class EasyRequester {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async sendRequest<TResponse = any, TPayload = any>(): Promise<
-    AxiosResponse<TResponse, TPayload>
-  > {
-    const axiosInstance = axios.create({ baseURL: this.requestURL });
+  public async sendRequest<TResponse = any, TPayload = any>(): Promise<AxiosResponse<TResponse, TPayload>> {
+    const axiosInstance = axios.create({ baseURL: this.generateURL() });
     axiosInstance.interceptors.response.use(
       (response: AxiosResponse<TResponse, TPayload>) => {
         this.debugModeLog("Received a response", response);
@@ -180,11 +173,7 @@ class EasyRequester {
         return response;
       },
       (error: AxiosError) => {
-        if (
-          error.response &&
-          this.statusCodes &&
-          this.statusCodes.includes(error.response!.status)
-        ) {
+        if (error.response && this.statusCodes && this.statusCodes.includes(error.response!.status)) {
           this.debugModeLog("Intercepted an error with a possible code", error.response);
           return Promise.resolve(error.response as AxiosResponse<TResponse, TPayload>);
         }
@@ -196,21 +185,17 @@ class EasyRequester {
     const possibleStatusCodes = this.statusCodes;
     const axiosConfig: AxiosRequestConfig<TPayload> = {
       ...this.additionalOptions,
-      baseURL: this.requestURL,
+      baseURL: this.generateURL(),
       method: this.method,
       headers: this.generatedHeaders,
       data: this.payload as TPayload,
       withCredentials: this.includeCookies,
       validateStatus: (status) => {
-        return this.statusCodes
-          ? possibleStatusCodes.includes(status)
-          : status >= 200 && status < 300;
+        return this.statusCodes ? possibleStatusCodes.includes(status) : status >= 200 && status < 300;
       },
     };
 
-    const response = await axiosInstance.request<TResponse, AxiosResponse<TResponse, TPayload>>(
-      axiosConfig,
-    );
+    const response = await axiosInstance.request<TResponse, AxiosResponse<TResponse, TPayload>>(axiosConfig);
     return response;
   }
 }

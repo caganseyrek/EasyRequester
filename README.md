@@ -16,28 +16,14 @@ pnpm add easy-requester
 - There are four required parameters you need to pass to the requester: **baseURL**, **endpoint**, **method**, and **payload**. In addition to these parameters, there are other optional parameters you can add to customize your request.
 
   ```typescript
-  type Methods =
-    | "GET"
-    | "HEAD"
-    | "OPTIONS"
-    | "TRACE"
-    | "PUT"
-    | "DELETE"
-    | "POST"
-    | "PATCH"
-    | "CONNECT";
+  type Methods = "GET" | "HEAD" | "OPTIONS" | "TRACE" | "PUT" | "DELETE" | "POST" | "PATCH" | "CONNECT";
   type HttpProtocols = "http" | "https";
-
-  type EndpointProps = {
-    route: string;
-    controller: string;
-  };
 
   export interface EasyRequesterConfig extends AxiosRequestConfig {
     protocol?: HttpProtocols;
     baseURL: string;
     port?: number;
-    endpoint: EndpointProps | string;
+    endpoint: object | string;
     method: Methods;
     headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
     contentType?: string;
@@ -53,9 +39,9 @@ pnpm add easy-requester
 
 ## Required Parameters
 
-- **baseURL**: This is the base URL of your backend server or where you want to send the request. It should end with "/". For example: `https://example.com/api/`.
-- **endpoint**: This is the endpoint in the server where we send a request. It accepts two types, first one is string (e.g "user/login"), and the second one is `typeof EndpointProps` shown above.
-  > `route` and `controller` are suitable names for situations where there are multiple controller files, each containing a single function (as I tend to do). However, if you have a single controller file with multiple functions, you might consider using a string for endpoint.
+- **baseURL**: This is the base URL of your backend server or where you want to send the request. (For example: `https://example.com/api`).
+- **endpoint**: This is the endpoint in the server where we send a request. It accepts either a string or an object.
+  > You can add the endpoint as a single string like `user/login` or as an object. This object's values forms the endpoint string so names of keys does not matter in this object. For example if you pass an object like `{ route: "user", controller: "login" }` the endpoint would be `user/login`
 - **method**: This is the method of the request (duh). It accepts the values shown above.
 - **payload**: This is the body part of the request. It is the the data you are sending to the endpoint.
 
@@ -87,11 +73,11 @@ async function fetchSomeData(requestData: object | string, queryData: string) {
     const requestConfig: EasyRequesterConfig = {
       protocol: "https",
       baseURL: "example.com/api",
-      endpoint: "user/login"
+      endpoint: "user/login",
       method: "POST",
       payload: requestData,
       query: queryData,
-    }
+    };
 
     const requester = EasyRequester.setConfig(requestConfig);
     const response = requester.sendRequest<ResponseType, RequestPayloadType>();
