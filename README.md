@@ -1,6 +1,19 @@
 # EasyRequester
 
-A custom and flexible HTTP requester that uses [Axios](https://axios-http.com/).
+![NPM Version](https://img.shields.io/npm/v/easy-requester)
+![NPM Downloads](https://img.shields.io/npm/d18m/easy-requester)
+![NPM License](https://img.shields.io/npm/l/easy-requester)
+
+EasyRequester is a custom, flexible, and lightweight HTTP client wrapper built on top of [Axios](https://axios-http.com/).
+
+## Features
+
+- **Customizable Status Code Handling:** Define acceptable status codes for responses.
+- **Debug Mode:** Enable detailed console logs for easier debugging.
+- **TypeScript Support:** Built with TypeScript for strong type safety.
+- **Lightweight Design:** Minimal dependencies for optimal performance and small package size.
+- **Simple but Extensive Configuration:** Offers simple configuration that can be extended to meet advanced requirements.
+- **Promise-based API:** Fully compatible with async/await syntax.
 
 ## Installation
 
@@ -61,24 +74,24 @@ pnpm add easy-requester
 
 ## Example Usage
 
-First, initialize the requester class, then provide the required and optional parameters, and invoke the `sendRequest` function. You can do this in two ways shown below.
+First, initialize the requester class, then provide the required and optional parameters via `setConfig()`, and invoke the `sendRequest()` function. Then you can update the requester config simply by calling `setConfig()` function again and passing the new parameters.
 
 The `sendRequest` function requires a return type for the response.
 
 ```typescript
 import { EasyRequester } from "easy-requester";
 
+const requestConfig: EasyRequesterConfig = {
+  protocol: "https",
+  baseURL: "example.com/api",
+  endpoint: "user/login",
+  method: "POST",
+  payload: requestData,
+  query: queryData,
+};
+
 async function fetchSomeData(requestData: object | string, queryData: string) {
   try {
-    const requestConfig: EasyRequesterConfig = {
-      protocol: "https",
-      baseURL: "example.com/api",
-      endpoint: "user/login",
-      method: "POST",
-      payload: requestData,
-      query: queryData,
-    };
-
     const requester = EasyRequester.setConfig(requestConfig);
     const response = requester.sendRequest<ResponseType, RequestPayloadType>();
 
@@ -88,9 +101,28 @@ async function fetchSomeData(requestData: object | string, queryData: string) {
     throw new Error(error as string);
   }
 }
+
+// Or
+
+async function fetchSomeData(requestData: object | string, queryData: string) {
+  try {
+    return EasyRequester.setConfig(requestConfig).sendRequest<ResponseType, RequestPayloadType>()
+  } catch (error) {
+    console.error(error);
+    throw new Error(error as string);
+  }
+}
 ```
 
-You can update the request config simply by calling `setConfig()` function and passing the required and optional parameters.
+You can update the configuration for a new request by extending the previous configuration and overriding specific parameters with new values:
+
+```typescript
+const requester = EasyRequester.setConfig({
+  ...requestConfig, // Previous configuration
+  payload: newPayload, // Updated parameter
+});
+const response = requester.sendRequest<ResponseType, RequestPayloadType>();
+```
 
 ## Debug Mode
 
@@ -101,3 +133,7 @@ const requester = EasyRequester.setConfig({ ...someConfig }).debugMode(true);
 // or
 const requester = EasyRequester.debugMode(true);
 ```
+
+## License
+
+This project is open-source and licensed under [MIT License](https://github.com/caganseyrek/EasyRequester/blob/main/LICENSE).
