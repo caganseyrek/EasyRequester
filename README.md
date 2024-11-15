@@ -4,16 +4,15 @@
 ![NPM Downloads](https://img.shields.io/npm/d18m/easy-requester)
 ![NPM License](https://img.shields.io/npm/l/easy-requester)
 
-EasyRequester is a custom, flexible, and lightweight HTTP client wrapper built on top of [Axios](https://axios-http.com/).
+EasyRequester is a custom and flexible HTTP client wrapper built on top of [Axios](https://axios-http.com/).
 
 ## Features
 
 - **Customizable Status Code Handling:** Define acceptable status codes for responses.
-- **Debug Mode:** Enable detailed console logs for easier debugging.
-- **TypeScript Support:** Built with TypeScript for strong type safety.
-- **Lightweight Design:** Minimal dependencies for optimal performance and small package size.
 - **Simple but Extensive Configuration:** Offers simple configuration that can be extended to meet advanced requirements.
 - **Promise-based API:** Fully compatible with async/await syntax.
+- **TypeScript Support:** Built with TypeScript for strong type safety.
+- **Debug Mode:** Enable detailed console logs for easier debugging.
 
 ## Installation
 
