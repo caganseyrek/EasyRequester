@@ -78,7 +78,7 @@ First, initialize the requester class, then provide the required and optional pa
 The `sendRequest` function requires a return type for the response.
 
 ```typescript
-import { EasyRequester } from "easy-requester";
+import { EasyRequester, EasyRequesterConfig } from "easy-requester";
 
 const requestConfig: EasyRequesterConfig = {
   protocol: "https",
@@ -101,11 +101,11 @@ async function fetchSomeData(requestData: object | string, queryData: string) {
   }
 }
 
-// Or
+// or
 
 async function fetchSomeData(requestData: object | string, queryData: string) {
   try {
-    return EasyRequester.setConfig(requestConfig).sendRequest<ResponseType, RequestPayloadType>()
+    return EasyRequester.setConfig(requestConfig).sendRequest<ResponseType, RequestPayloadType>();
   } catch (error) {
     console.error(error);
     throw new Error(error as string);
@@ -125,7 +125,7 @@ const response = requester.sendRequest<ResponseType, RequestPayloadType>();
 
 ## Debug Mode
 
-Debug mode logs almost every action to the console. You can enable the debug mode by calling `debugMode()` and passing a `boolean` value for toggling. You if you call the function and pass a `true`, you can pass false value later in code to disable the debug mode.
+Debug mode logs almost every action to the console. You can enable the debug mode by calling `debugMode()` and passing a `boolean` value for toggling. You if you call the function and pass a `true`, you can pass false value later in code to disable the debug mode. You can chain this function with other functions.
 
 ```typescript
 const requester = EasyRequester.setConfig({ ...someConfig }).debugMode(true);
