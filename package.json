@@ -6,8 +6,8 @@
 	"type": "module",
 	"keywords": [
 		"typescript",
-		"axios",
-		"http-requester"
+		"http-requester",
+		"fetch-api"
 	],
 	"author": "Çağan Seyrek",
 	"license": "MIT",
