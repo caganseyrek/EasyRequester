@@ -28,10 +28,10 @@ pnpm add easy-requester
 - There are four required parameters you need to pass to the requester: **baseURL**, **endpoint**, **method**, and **payload**. In addition to these parameters, there are other optional parameters you can add to customize your request.
 
   ```typescript
-  type Methods = "GET" | "HEAD" | "OPTIONS" | "TRACE" | "PUT" | "DELETE" | "POST" | "PATCH" | "CONNECT";
-  type HttpProtocols = "http" | "https";
+  declare type Methods = "GET" | "HEAD" | "OPTIONS" | "TRACE" | "PUT" | "DELETE" | "POST" | "PATCH" | "CONNECT";
+  declare type HttpProtocols = "http" | "https";
 
-  export interface EasyRequesterConfig extends AxiosRequestConfig {
+  declare interface EasyRequesterConfig extends AxiosRequestConfig {
     protocol?: HttpProtocols;
     baseURL: string;
     port?: number;
@@ -91,8 +91,7 @@ const requestConfig: EasyRequesterConfig = {
 
 async function fetchSomeData(requestData: object | string, queryData: string) {
   try {
-    const requester = EasyRequester.setConfig(requestConfig);
-    const response = requester.sendRequest<ResponseType, RequestPayloadType>();
+    const response = new EasyRequester().setConfig(requestConfig).sendRequest<ResponseType, RequestPayloadType>();
 
     return response;
   } catch (error) {
@@ -100,27 +99,6 @@ async function fetchSomeData(requestData: object | string, queryData: string) {
     throw new Error(error as string);
   }
 }
-
-// or
-
-async function fetchSomeData(requestData: object | string, queryData: string) {
-  try {
-    return EasyRequester.setConfig(requestConfig).sendRequest<ResponseType, RequestPayloadType>();
-  } catch (error) {
-    console.error(error);
-    throw new Error(error as string);
-  }
-}
-```
-
-You can update the configuration for a new request by extending the previous configuration and overriding specific parameters with new values:
-
-```typescript
-const requester = EasyRequester.setConfig({
-  ...requestConfig, // Previous configuration
-  payload: newPayload, // Updated parameter
-});
-const response = requester.sendRequest<ResponseType, RequestPayloadType>();
 ```
 
 ## Debug Mode
@@ -128,9 +106,9 @@ const response = requester.sendRequest<ResponseType, RequestPayloadType>();
 Debug mode logs almost every action to the console. You can enable the debug mode by calling `debugMode()` and passing a `boolean` value for toggling. You if you call the function and pass a `true`, you can pass false value later in code to disable the debug mode. You can chain this function with other functions.
 
 ```typescript
-const requester = EasyRequester.setConfig({ ...someConfig }).debugMode(true);
+const requester = new EasyRequester().setConfig({ ...someConfig }).debugMode(true);
 // or
-const requester = EasyRequester.debugMode(true);
+const requester = new EasyRequester().debugMode(true);
 ```
 
 ## License
