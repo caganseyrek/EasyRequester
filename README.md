@@ -66,7 +66,7 @@ pnpm add easy-requester
 - **statusCodes**: This is the acceptable status codes. By default any code that starts with 2 (`2xx`) is an acceptable code. You can pass status codes like 400, 401 etc. as a list to prevent the requester from throwing errors. For example, if you include the 401 (Bad Request) status code, the requester does not throw an error so you can process the error message sent by the backend to show a dialog or something like that to the end-user.
   > Default status codes are all `2xx` codes but if you pass any code list to this parameter, the default codes are overwritten. So if you are adding additional status codes, don't forget to add `2xx` status codes also.
 - **query**: This is the query appended to the complete request URL. For example if you are sending a request to `https://example.com/api/post/getAllPosts` and included `publishYear=2024`, the final URL looks like this: `https://example.com/api/post/getAllPosts?publishYear=2024`.
--
+- **customHeaders**: This is the custom headers you want to include in your request.
 
 ## Example Usage
 
