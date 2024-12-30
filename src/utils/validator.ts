@@ -1,31 +1,34 @@
-import InternalTypes from "../types/internal";
+import type InternalTypes from "../types/internal";
+
+import Debugger from "./debugger";
 
 class Validator {
-  public static validateConfig(config: InternalTypes.ValidatorParams) {
+  public static validateConfig(config: InternalTypes.Utils.ValidatorParams) {
+    Debugger.log("Validating requester config");
     if (config.protocol && config.protocol !== "https" && config.protocol !== "http") {
-      throw new Error("[EasyRequester_ERROR] config.protocol should be 'http' or 'https'.");
+      Debugger.error(`Expected protocol parameter to be 'http' or 'https' but found ${config.protocol}`);
     }
     if (!config.baseURL) {
-      throw new Error("[EasyRequester_ERROR] BaseURL is required for requester.");
+      Debugger.error("BaseURL is a required parameter for requester config.");
     }
     if (config.port && typeof config.port !== "number") {
-      throw new Error("[EasyRequester_ERROR] Port should be typeof 'number'.");
+      Debugger.error(`Expected port parameter to be typeof 'number' but found ${typeof config.port}.`);
     }
     if (typeof config.endpoint !== "string" && typeof config.endpoint !== "object") {
-      throw new Error("[EasyRequester_ERROR] Endpoint should be typeof 'string' or typeof 'EndpointProps'.");
+      Debugger.error(
+        `Expected endpoint parameter to be typeof 'string' or typeof 'object' but found ${typeof config.endpoint}`,
+      );
     }
     if (config.contentType && typeof config.contentType !== "string") {
-      throw new Error("[EasyRequester_ERROR] contentType should be typeof 'string'.");
+      Debugger.error(`Expected contentType to be typeof 'string' but found ${config.contentType}.`);
     }
     if (config.responseLang && typeof config.responseLang !== "string") {
-      throw new Error("[EasyRequester_ERROR] responseLang should be typeof 'string'.");
+      Debugger.error(`Expected responseLang parameter to be typeof 'string' but found ${config.responseLang}.`);
     }
-    if (
-      config.accessToken &&
-      typeof config.accessToken !== "string" &&
-      typeof config.accessToken !== "number"
-    ) {
-      throw new Error("[EasyRequester_ERROR] Endpoint should be typeof 'string' or typeof 'number'.");
+    if (config.accessToken && typeof config.accessToken !== "string" && typeof config.accessToken !== "number") {
+      Debugger.error(
+        `Expected AccessToken parameter to be typeof 'string' or typeof 'number' but found ${typeof config.accessToken}.`,
+      );
     }
   }
 }

@@ -1,108 +1,83 @@
-import axios, {
-  AxiosError,
-  AxiosHeaders,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-  RawAxiosRequestHeaders,
-} from "axios";
+import type { EasyRequesterConfig } from ".";
+import type InternalTypes from "./types/internal";
 
-import { EasyRequesterConfig } from ".";
-import { HttpProtocols, Methods } from "./types";
 import Generators from "./utils/generators";
 import Validator from "./utils/validator";
 import Debugger from "./utils/debugger";
 
-const POSSIBLE_STATUS_CODES = [200, 201, 400, 401, 403, 404, 409, 500];
-
 class EasyRequester {
-  private protocol: HttpProtocols = "https";
-  private baseURL: string = "";
-  private port?: number;
-  private endpoint: object | string = "";
-  private method: Methods = "POST";
-  private headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
-  private contentType: string = "application/json";
-  private accessToken?: string | number;
-  private includeCookies?: boolean = false;
-  private responseLang?: string;
-  private statusCodes: number[] = POSSIBLE_STATUS_CODES;
-  private query?: Record<string, string>;
-  private payload: object | Record<string, string> | string = {};
-  private additionalOptions?: object;
-  private generatedHeaders?: object;
+  private POSSIBLE_STATUS_CODES: number[] = [200, 201, 202, 203, 204, 205, 206];
+  private requesterParams: InternalTypes.RequesterParams = {
+    requestURLParams: {
+      protocol: "https",
+      baseURL: "",
+      port: undefined,
+      endpoint: "",
+      query: undefined,
+    },
+    requestHeaderParams: {
+      method: "POST",
+      contentType: "application/json",
+      responseLang: undefined,
+      customHeaders: undefined,
+      generatedHeaders: undefined,
+    },
+    requestAuthParams: {
+      accessToken: undefined,
+      includeCookies: false,
+    },
+    requestPayload: {},
+    responseDetailsParams: {
+      possibleStatusCodes: this.POSSIBLE_STATUS_CODES,
+    },
+  };
+  private isDebugMode: boolean = false;
 
-  private isDebugMode: boolean = true;
-  private axiosInstance: AxiosInstance;
-
-  constructor() {
-    this.axiosInstance = axios.create();
-    Debugger.log(`New Axios Instance created: ${this.axiosInstance}`);
-  }
-
-  /**
-   * Sets up AxiosInstance's interceptors
-   */
-  private setupInterceptors<TResponse, TPayload>(): void {
-    this.axiosInstance.interceptors.response.use(
-      (response: AxiosResponse<TResponse, TPayload>) => {
-        Debugger.log("Received a response", response);
-        if (this.statusCodes && this.statusCodes.includes(response.status)) {
-          return Promise.resolve(response);
-        }
-        return response;
-      },
-      (error: AxiosError) => {
-        if (error.response && this.statusCodes && this.statusCodes.includes(error.response!.status)) {
-          Debugger.log("Intercepted an error with a possible code", error.response);
-          return Promise.resolve(error.response as AxiosResponse<TResponse, TPayload>);
-        }
-        Debugger.log("Received an error", error.response);
-        return Promise.reject(error);
-      },
-    );
-  }
+  constructor() {}
 
   /**
    * Sets up the configuration for the EasyRequester instance.
-   * @param {EasyRequesterConfig} config
+   * @param {EasyRequesterConfig} requesterConfig
    * @returns The EasyRequester instance for chaining.
    * @throws {Error} If required configuration fields are missing or invalid.
-   * @example
-   * new EasyRequester.setConfig({ ...config });
+   * @example new EasyRequester.setConfig({ ...config });
    */
-  public setConfig(config: EasyRequesterConfig): EasyRequester {
-    this.protocol = config.protocol ?? this.protocol;
-    this.baseURL = config.baseURL.replace(/\/$/, "");
-    this.port = config.port;
-    this.endpoint = config.endpoint;
-    this.method = config.method;
-    this.contentType = config.contentType ?? this.contentType;
-    this.accessToken = config.accessToken;
-    this.includeCookies = config.includeCookies;
-    this.responseLang = config.responseLang;
-    this.statusCodes = config.statusCodes ? this.statusCodes.concat(config.statusCodes!) : this.statusCodes;
-    this.query = config.query;
-    this.payload = config.payload;
-    this.headers = config.headers ?? {};
-    this.additionalOptions = config.additionalOptions ?? {};
-    this.generatedHeaders = Generators.generateHeaders({
-      headers: this.headers,
-      contentType: this.contentType,
-      accessToken: this.accessToken,
-      responseLang: this.responseLang,
-    });
-
-    Debugger.setDebugMode(this.isDebugMode);
-
+  public setConfig(requesterConfig: EasyRequesterConfig): EasyRequester {
+    Debugger.log("Setting up request config...");
+    this.requesterParams = {
+      requestURLParams: {
+        protocol: requesterConfig.protocol ?? this.requesterParams.requestURLParams.protocol,
+        baseURL: requesterConfig.baseURL.replace(/\/$/, ""),
+        port: requesterConfig.port,
+        endpoint: requesterConfig.endpoint,
+        query: requesterConfig.query,
+      },
+      requestHeaderParams: {
+        method: requesterConfig.method,
+        contentType: requesterConfig.contentType ?? this.requesterParams.requestHeaderParams.contentType,
+        responseLang: requesterConfig.responseLang,
+        customHeaders: requesterConfig.customHeaders ?? {},
+      },
+      requestAuthParams: {
+        accessToken: requesterConfig.accessToken,
+        includeCookies: requesterConfig.includeCookies,
+      },
+      requestPayload: requesterConfig.payload,
+      responseDetailsParams: {
+        possibleStatusCodes: requesterConfig.possibleStatusCodes
+          ? this.requesterParams.responseDetailsParams.possibleStatusCodes.concat(requesterConfig.possibleStatusCodes)
+          : this.requesterParams.responseDetailsParams.possibleStatusCodes,
+      },
+    };
+    Debugger.log("Done setting up request config...");
     Validator.validateConfig({
-      protocol: this.protocol,
-      baseURL: this.baseURL,
-      port: this.port,
-      endpoint: this.endpoint,
-      contentType: this.contentType,
-      accessToken: this.accessToken,
-      responseLang: this.responseLang,
+      protocol: this.requesterParams.requestURLParams.protocol,
+      baseURL: this.requesterParams.requestURLParams.baseURL,
+      port: this.requesterParams.requestURLParams.port,
+      endpoint: this.requesterParams.requestURLParams.endpoint,
+      contentType: this.requesterParams.requestHeaderParams.contentType,
+      accessToken: this.requesterParams.requestAuthParams.accessToken,
+      responseLang: this.requesterParams.requestHeaderParams.responseLang,
     });
     return this;
   }
@@ -118,6 +93,7 @@ class EasyRequester {
   public debugMode(isToggled: boolean = false): EasyRequester {
     this.isDebugMode = isToggled;
     Debugger.setDebugMode(this.isDebugMode);
+    Debugger.log(`Debug mode is set to ${this.isDebugMode}`);
     return this;
   }
 
@@ -126,37 +102,59 @@ class EasyRequester {
    * @template TResponse - Type of the expected response data.
    * @template TPayload - Type of the payload data.
    * @requires `setConfig()` to set the request configuration.
-   * @returns {Promise<AxiosResponse<TResponse, TPayload>>} A promise resolving with the Axios response.
-   * @throws {AxiosError} For HTTP requests that does not match the possible status codes.
+   * @returns {Promise<TResponse>} A promise with response object that is typeof TResponse.
+   * @throws `Error` For HTTP requests that does not match the possible status codes.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async sendRequest<TResponse = any, TPayload = any>(): Promise<TResponse> {
-    this.setupInterceptors<TResponse, TPayload>();
+    const generatedURL: string = Generators.generateURL(this.requesterParams.requestURLParams);
+    const requestConfig: RequestInit = {};
     try {
-      const possibleStatusCodes = this.statusCodes;
-      const generatedURL: string = Generators.generateURL({
-        protocol: this.protocol,
-        baseURL: this.baseURL,
-        port: this.port,
-        endpoint: this.endpoint,
-        query: this.query,
-      });
-      const axiosConfig: AxiosRequestConfig<TPayload> = {
-        ...this.additionalOptions,
-        baseURL: generatedURL,
-        url: generatedURL,
-        method: this.method,
-        headers: this.generatedHeaders,
-        data: this.payload as TPayload,
-        withCredentials: this.includeCookies,
-        validateStatus: (status) => {
-          return this.statusCodes ? possibleStatusCodes.includes(status) : status >= 200 && status < 300;
-        },
-      };
-      const response = await this.axiosInstance.request<TResponse, AxiosResponse<TResponse, TPayload>>(axiosConfig);
-      return response.data as TResponse;
+      Debugger.log("Trying to send request...");
+      requestConfig.method = this.requesterParams.requestHeaderParams.method;
+      requestConfig.headers = this.requesterParams.requestHeaderParams.generatedHeaders as HeadersInit;
+      requestConfig.credentials = this.requesterParams.requestAuthParams.includeCookies ? "include" : "same-origin";
+
+      /**
+       * Skip adding request body if request method is either 'GET' or 'HEAD'.
+       * See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET
+       * See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
+       */
+      if (
+        this.requesterParams.requestHeaderParams.method !== "GET" &&
+        this.requesterParams.requestHeaderParams.method !== "HEAD"
+      ) {
+        requestConfig.body = JSON.stringify(this.requesterParams.requestPayload as TPayload);
+        Debugger.log("Added request body.");
+      }
+      Debugger.log("Skipped adding request body due to request method being 'GET' or 'HEAD'");
+
+      const response = await fetch(generatedURL, requestConfig);
+      if (
+        this.requesterParams.responseDetailsParams.possibleStatusCodes &&
+        this.requesterParams.responseDetailsParams.possibleStatusCodes.includes(response.status)
+      ) {
+        /**
+         * Resolve response data, if the response's status code is among POSSIBLE_STATUS_CODES,
+         * or among the additional status codes which is set with the setConfig method.
+         */
+        Debugger.log(
+          `Resolving response data. Response status code is ${response.status} which is among possible status codes.`,
+        );
+        const responseData: TResponse = await response.json();
+        Debugger.log("Successfully resolved response.");
+        return responseData;
+      }
+      /**
+       * Return null if the status codes is not among the possible response status codes.
+       */
+      const responseMessage: TResponse = await response.json();
+      Debugger.error(
+        `Request failed with status: ${response.status} - ${response.statusText} with a message ${responseMessage}`,
+      );
+      return null as TResponse;
     } catch (error) {
-      Debugger.log(JSON.stringify(error));
+      Debugger.error((error as Error).message);
       return null as TResponse;
     }
   }

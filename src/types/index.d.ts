@@ -14,7 +14,7 @@ declare type HttpProtocols = "http" | "https";
  * @param {EasyRequesterConfig} config - The configuration object for the request.
  * @description See the usage at https://github.com/caganseyrek/EasyRequester#README
  */
-declare interface EasyRequesterConfig extends AxiosRequestConfig {
+declare interface EasyRequesterConfig {
   /**
    * Protocol of the request. Defaults to `https`.
    * @param {HttpProtocols} [protocol="https"] **Optional**
@@ -49,10 +49,10 @@ declare interface EasyRequesterConfig extends AxiosRequestConfig {
   method: Methods;
 
   /**
-   * FHeaders for the request.
-   * @param {RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>} headers **Optional**
+   * Custom headers for the request.
+   * @param {Record<string, string>} headers **Optional**
    */
-  headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
+  customHeaders?: Record<string, string>;
 
   /**
    * Content-Type for the request. Defaults to `application/json`.
@@ -79,10 +79,11 @@ declare interface EasyRequesterConfig extends AxiosRequestConfig {
   responseLang?: string;
 
   /**
-   * List of acceptable status codes that requester does not throw an error when received. Defaults to status codes like `2xx`.
+   * List of acceptable status codes that requester does not throw an error when received.
+   * Defaults to an array of [200, 201, 202, 203, 204, 205, 206].
    * @param {number[]} statusCodes **Optional**
    */
-  statusCodes?: number[];
+  possibleStatusCodes?: number[];
 
   /**
    * Query parameters to include in the request.
@@ -95,12 +96,6 @@ declare interface EasyRequesterConfig extends AxiosRequestConfig {
    * @param {object | Record<string, string> | string} payload **Required**
    */
   payload: object | Record<string, string> | string;
-
-  /**
-   * Additional Axios options for the request.
-   * @param {object?} additionalOptions **Optional**
-   */
-  additionalOptions?: object;
 }
 
 export type { Methods, HttpProtocols, EasyRequesterConfig };

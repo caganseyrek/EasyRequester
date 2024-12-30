@@ -1,5 +1,4 @@
 class Debugger {
-  private static instance: Debugger;
   private static isDebugMode: boolean = false;
 
   private constructor() {}
@@ -8,12 +7,20 @@ class Debugger {
     this.isDebugMode = debugMode;
   }
 
-  public static log(message: string, data?: object | string): void {
+  public static log(debugMessage: string): void {
     if (this.isDebugMode) {
-      const formattedData = data ? `: ${JSON.stringify(data)}` : "";
       // eslint-disable-next-line no-console
-      console.debug(`[EasyRequester_DEBUG]: ${message}${formattedData}`);
+      console.debug(`[EasyRequester_DEBUG]: ${debugMessage}`);
     }
+    return;
+  }
+
+  public static error(errorMessage: string): void {
+    if (this.isDebugMode) {
+      // eslint-disable-next-line no-console
+      console.debug(`[EasyRequester_ERROR]: ${errorMessage}`);
+    }
+    throw new Error(`[EasyRequester_ERROR]: ${errorMessage}`);
   }
 }
 

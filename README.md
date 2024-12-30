@@ -4,7 +4,7 @@
 ![NPM Downloads](https://img.shields.io/npm/d18m/easy-requester)
 ![NPM License](https://img.shields.io/npm/l/easy-requester)
 
-EasyRequester is a custom and flexible HTTP client wrapper built on top of [Axios](https://axios-http.com/).
+EasyRequester is a custom and flexible HTTP client wrapper.
 
 ## Features
 
@@ -24,28 +24,25 @@ pnpm add easy-requester
 
 ## How does it work?
 
-- The requester initializes an Axios instance first and passes the provided props to that Axios instance's config.
 - There are four required parameters you need to pass to the requester: **baseURL**, **endpoint**, **method**, and **payload**. In addition to these parameters, there are other optional parameters you can add to customize your request.
 
   ```typescript
   declare type Methods = "GET" | "HEAD" | "OPTIONS" | "TRACE" | "PUT" | "DELETE" | "POST" | "PATCH" | "CONNECT";
   declare type HttpProtocols = "http" | "https";
-
-  declare interface EasyRequesterConfig extends AxiosRequestConfig {
+  declare interface EasyRequesterConfig {
     protocol?: HttpProtocols;
     baseURL: string;
     port?: number;
     endpoint: object | string;
     method: Methods;
-    headers?: RawAxiosRequestHeaders | AxiosHeaders | Record<string, string>;
+    customHeaders?: Record<string, string>;
     contentType?: string;
     accessToken?: string | number;
     includeCookies?: boolean;
     responseLang?: string;
-    statusCodes?: number[];
+    possibleStatusCodes?: number[];
     query?: Record<string, string>;
     payload: object | Record<string, string> | string;
-    additionalOptions?: object;
   }
   ```
 
@@ -69,7 +66,7 @@ pnpm add easy-requester
 - **statusCodes**: This is the acceptable status codes. By default any code that starts with 2 (`2xx`) is an acceptable code. You can pass status codes like 400, 401 etc. as a list to prevent the requester from throwing errors. For example, if you include the 401 (Bad Request) status code, the requester does not throw an error so you can process the error message sent by the backend to show a dialog or something like that to the end-user.
   > Default status codes are all `2xx` codes but if you pass any code list to this parameter, the default codes are overwritten. So if you are adding additional status codes, don't forget to add `2xx` status codes also.
 - **query**: This is the query appended to the complete request URL. For example if you are sending a request to `https://example.com/api/post/getAllPosts` and included `publishYear=2024`, the final URL looks like this: `https://example.com/api/post/getAllPosts?publishYear=2024`.
-- This config type extends to `AxiosRequestConfig`, so you can add other parameters which ares available in the `AxiosRequestConfig`.
+-
 
 ## Example Usage
 
@@ -106,9 +103,7 @@ async function fetchSomeData(requestData: object | string, queryData: string) {
 Debug mode logs almost every action to the console. You can enable the debug mode by calling `debugMode()` and passing a `boolean` value for toggling. You if you call the function and pass a `true`, you can pass false value later in code to disable the debug mode. You can chain this function with other functions.
 
 ```typescript
-const requester = new EasyRequester().setConfig({ ...someConfig }).debugMode(true);
-// or
-const requester = new EasyRequester().debugMode(true);
+const requester = new EasyRequester().debugMode(true).setConfig({ ...someConfig });
 ```
 
 ## License
