@@ -7,3 +7,4 @@ eslint.config.js
 jest.config.ts
 .prettierrc
 .editorconfig
+temp/
