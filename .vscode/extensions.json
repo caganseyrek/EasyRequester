@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "ms-azuretools.vscode-docker",
+    "editorconfig.editorconfig",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "ms-vscode.js-debug-nightly",
+    "christian-kohler.npm-intellisense",
+    "esbenp.prettier-vscode",
+    "gruntfuggly.todo-tree",
+    "dsznajder.es7-react-js-snippets"
+  ]
+}
