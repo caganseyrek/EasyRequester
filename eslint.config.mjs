@@ -4,7 +4,10 @@ import tseslint from "typescript-eslint";
 
 export default [
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...{
+    ...tseslint.configs.recommended,
+    ignores: ["dist/*"],
+  },
   eslintConfigPrettier,
   {
     rules: {
@@ -32,5 +35,6 @@ export default [
       "no-multiple-empty-lines": ["error", { max: 2, maxEOF: 1 }],
       quotes: ["error", "double", { avoidEscape: true }],
     },
+    ignores: ["dist/*"],
   },
 ];
