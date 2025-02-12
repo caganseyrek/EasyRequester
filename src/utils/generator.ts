@@ -1,10 +1,5 @@
-import { ConfigSection } from "@/globals";
+import { GenerateEndpointParams, GenerateHeaderParams, GenerateURLParams } from "@/globals";
 import Debugger from "./debugger";
-
-type GenerateEndpointParams = Pick<ConfigSection.URLParams, "endpoint">;
-type GenerateURLParams = ConfigSection.URLParams;
-
-type GenerateHeaderParams = ConfigSection.HeaderParams & Pick<ConfigSection.AuthParams, "accessToken">;
 
 class Generator {
   private constructor() {}

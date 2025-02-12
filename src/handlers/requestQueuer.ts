@@ -1,13 +1,5 @@
+import { RequestQueueProps } from "@/globals";
 import Debugger from "@/utils/debugger";
-
-/* eslint-disable @typescript-eslint/no-explicit-any, no-unused-vars */
-type AnyExceptUndefined = Exclude<any, undefined | null>;
-
-export interface RequestQueueProps {
-  requestFn: () => Promise<any>;
-  resolve: (value: any) => void;
-  reject: (reason: AnyExceptUndefined) => void;
-}
 
 /**
  * A utility class to manage a queue of requests.
