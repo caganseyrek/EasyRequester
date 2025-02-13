@@ -1,3 +1,3 @@
-import EasyRequester from "./easy-requester";
-import type { Methods, HttpProtocols, ClientConfig, RequestConfig } from "./globals";
-export { EasyRequester, Methods, HttpProtocols, ClientConfig, RequestConfig };
+import BaseRequester from "./core/baseRequester";
+import type { Methods, HttpProtocols, ClientConfig, RequestConfig } from "./types/globals";
+export { BaseRequester as EasyRequester, Methods, HttpProtocols, ClientConfig, RequestConfig };
