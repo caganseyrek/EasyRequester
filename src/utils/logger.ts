@@ -1,4 +1,4 @@
-class Debugger {
+class Logger {
   private static isDebugMode: boolean = false;
 
   private constructor() {}
@@ -15,7 +15,7 @@ class Debugger {
    * @param {string} debugMessage - The debug message to log.
    * @returns {void}
    */
-  public static log(location: string, debugMessage: string): void {
+  public static info(location: string, debugMessage: string): void {
     if (this.isDebugMode) {
       // eslint-disable-next-line no-console
       console.debug(`[EasyRequester_DEBUG] ${debugMessage} at ${location}`);
@@ -40,4 +40,4 @@ class Debugger {
   }
 }
 
-export default Debugger;
+export default Logger;

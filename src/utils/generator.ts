@@ -1,5 +1,6 @@
-import { GenerateEndpointParams, GenerateHeaderParams, GenerateURLParams } from "@/globals";
-import Debugger from "./debugger";
+import type { GenerateEndpointParams, GenerateHeaderParams, GenerateURLParams } from "@/types/internals";
+
+import Logger from "./logger";
 
 class Generator {
   private constructor() {}
@@ -19,16 +20,16 @@ class Generator {
     if (typeof generateEndpointParams.endpoint === "object") {
       Object.entries(generateEndpointParams.endpoint).forEach(([key, value]) => {
         if (typeof value !== "string") {
-          Debugger.error(this.generateEndpoint.name, `Expected value for key "${key}" to be typeof 'string'.`);
+          Logger.error(this.generateEndpoint.name, `Expected value for key "${key}" to be typeof 'string'.`);
         }
         const sanitizedValue = value.replace(/^\/|\/$/g, "");
         endpoint += `/${sanitizedValue}`;
       });
-      Debugger.log(this.generateEndpoint.name, `Generating endpoint from object: ${JSON.stringify(endpoint)}`);
+      Logger.info(this.generateEndpoint.name, `Generating endpoint from object: ${JSON.stringify(endpoint)}`);
       return endpoint;
     }
     endpoint = "/" + generateEndpointParams.endpoint.replace(/^\/|\/$/g, "");
-    Debugger.log(this.generateEndpoint.name, `Generating endpoint from string: ${JSON.stringify(endpoint)}`);
+    Logger.info(this.generateEndpoint.name, `Generating endpoint from string: ${JSON.stringify(endpoint)}`);
     return endpoint;
   }
 
@@ -52,7 +53,7 @@ class Generator {
       : "";
 
     const generatedURL: string = `${urlString}${endpointString}${queryString}`;
-    Debugger.log(this.generateURL.name, `Generated request URL: ${generatedURL}`);
+    Logger.info(this.generateURL.name, `Generated request URL: ${generatedURL}`);
     return generatedURL;
   }
 
@@ -76,7 +77,7 @@ class Generator {
       }),
       ...(generateHeaderParams.responseLang && { "Accept-Language": generateHeaderParams.responseLang }),
     };
-    Debugger.log(this.generateHeaders.name, `Generated headers: ${JSON.stringify(generatedHeaders)}`);
+    Logger.info(this.generateHeaders.name, `Generated headers: ${JSON.stringify(generatedHeaders)}`);
     return generatedHeaders as HeadersInit;
   }
 }

@@ -1,5 +1,6 @@
-import { RequestQueueProps } from "@/globals";
-import Debugger from "@/utils/debugger";
+import type { RequestQueueProps } from "@/types/internals";
+
+import Logger from "@/utils/logger";
 
 /**
  * A utility class to manage a queue of requests.
@@ -26,7 +27,7 @@ class RequestQueuer {
     const { requestFn, resolve, reject } = this.requestQueue.shift()!;
     this.isRequestInProgress = true;
 
-    Debugger.log(requestFn.name, "Processing request queue");
+    Logger.info(requestFn.name, "Processing request queue");
     try {
       const response = await requestFn();
       resolve(response);

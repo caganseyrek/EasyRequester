@@ -1,4 +1,4 @@
-import Debugger from "@/utils/debugger";
+import Logger from "@/utils/logger";
 
 /**
  * A utility class to manage aborting requests using `AbortController`.
@@ -37,7 +37,7 @@ class RequestAborter {
     requestConfig.signal = this.abortController.signal;
 
     if (this.controllers.has(generatedURL)) {
-      Debugger.log(this.setupAbortController.name, "Aborted previous request due to being received a new request.");
+      Logger.info(this.setupAbortController.name, "Aborted previous request due to being received a new request.");
       const previousController = this.controllers.get(generatedURL);
       previousController?.abort();
     }
