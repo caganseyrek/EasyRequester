@@ -39,7 +39,7 @@ tsconfig.json
 
 ## Documentation
 
-For detailed documentation, please see the [project documentation](https://caganseyrek.com/projects/EasyRequester).
+For detailed documentation, please see the [project wiki](https://github.com/caganseyrek/EasyRequester/wiki).
 
 ## License
 
