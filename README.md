@@ -41,6 +41,18 @@ tsconfig.json
 
 For detailed documentation, please see the [project wiki](https://github.com/caganseyrek/EasyRequester/wiki).
 
+## Roadmap
+
+- Interceptors
+- Timeout Handling
+- Request Throttling
+- Request Deduplication
+- Custom Middleware Support
+- Retry Mechanism
+- CLI Support for Sending Requests
+- Automatic Token Refresh
+- Plugin system (?)
+
 ## License
 
 This project is open-source and licensed under [MIT License](https://github.com/caganseyrek/EasyRequester/blob/main/LICENSE).
